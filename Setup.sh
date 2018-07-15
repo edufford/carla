@@ -123,7 +123,7 @@ fi
 pushd boost-source >/dev/null
 
 BOOST_TOOLSET="clang-3.9"
-BOOST_CFLAGS="-fPIC -std=c++1y -stdlib=libc++ -I../llvm-install/include/c++/v1"
+BOOST_CFLAGS="-fPIC -std=c++1y -stdlib=libc++ -nostdinc++ -I../llvm-install/include/c++/v1"
 BOOST_LFLAGS="-stdlib=libc++ -L../llvm-install/lib"
 
 ./bootstrap.sh \
@@ -156,7 +156,7 @@ export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD/../llvm-install/lib/"
 ./configure \
     CC="clang-3.9" \
     CXX="clang++-3.9" \
-    CXXFLAGS="-fPIC -stdlib=libc++ -I$PWD/../llvm-install/include/c++/v1" \
+    CXXFLAGS="-fPIC -stdlib=libc++ -nostdinc++ -I$PWD/../llvm-install/include/c++/v1" \
     LDFLAGS="-stdlib=libc++ -L$PWD/../llvm-install/lib/" \
     --prefix="$PWD/../protobuf-install" \
     --disable-shared
@@ -181,7 +181,7 @@ pushd googletest-source >/dev/null
 
 cmake -H. -B./build \
     -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} \
-    -DCMAKE_CXX_FLAGS="-stdlib=libc++ -I$PWD/../llvm-install/include/c++/v1 -Wl,-L$PWD/../llvm-install/lib" \
+    -DCMAKE_CXX_FLAGS="-stdlib=libc++ -nostdinc++ -I$PWD/../llvm-install/include/c++/v1 -Wl,-L$PWD/../llvm-install/lib" \
     -DCMAKE_INSTALL_PREFIX="../googletest-install" \
     -G "Ninja"
 

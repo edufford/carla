@@ -13,7 +13,7 @@ endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 # -- Compiler and dependencies -------------------------------------------------
 # ==============================================================================
 
-if (UNIX)
+if (UNIX AND NOT APPLE)
 
   find_package(Threads)
 
@@ -31,6 +31,51 @@ if (UNIX)
 
   # Setup libc++.
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  include_directories("${CARLA_LIBCXX_INSTALL_PATH}/include/c++/v1")
+  link_directories("${CARLA_LIBCXX_INSTALL_PATH}/lib")
+  file(GLOB LibCXX_Shared_Libraries "${CARLA_LIBCXX_INSTALL_PATH}/lib/libc++*.so*")
+  file(GLOB LibCXX_Static_Libraries "${CARLA_LIBCXX_INSTALL_PATH}/lib/libc++*.a")
+
+  # Setup boost.
+  include_directories("${CARLA_BOOST_INSTALL_PATH}/include")
+  set(Boost_Static_Libraries "${CARLA_BOOST_INSTALL_PATH}/lib/libboost_system.a")
+
+  # Setup protobuf.
+  include_directories("${CARLA_PROTOBUF_INSTALL_PATH}/include")
+  set(Protobuf_Static_Libraries "${CARLA_PROTOBUF_INSTALL_PATH}/lib/libprotobuf.a")
+
+  # Setup googletest.
+  include_directories("${CARLA_GOOGLETEST_INSTALL_PATH}/include")
+  set(GTest_Static_Libraries "${CARLA_GOOGLETEST_INSTALL_PATH}/lib/libgtest.a")
+
+  install(FILES
+      ${LibCXX_Shared_Libraries}
+    DESTINATION shared)
+
+  install(FILES
+      ${LibCXX_Static_Libraries}
+      ${Boost_Static_Libraries}
+      ${Protobuf_Static_Libraries}
+    DESTINATION lib)
+
+elseif (APPLE)
+
+  find_package(Threads)
+
+  set(CMAKE_CXX_COMPILER clang++-3.9)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++14 -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -Wno-unused-parameter -Wno-error=unused-command-line-argument")
+
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -D_DEBUG -O0")
+  elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -O3")
+  endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+  # Setup libc++.
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -nostdinc++")
   include_directories("${CARLA_LIBCXX_INSTALL_PATH}/include/c++/v1")
   link_directories("${CARLA_LIBCXX_INSTALL_PATH}/lib")
   file(GLOB LibCXX_Shared_Libraries "${CARLA_LIBCXX_INSTALL_PATH}/lib/libc++*.so*")
@@ -81,9 +126,9 @@ elseif (WIN32)
       ${Protobuf_Static_Libraries}
     DESTINATION lib)
 
-else (UNIX)
+else (UNIX AND NOT APPLE)
   message(FATAL_ERROR "Build configuration not yet available for this platform")
-endif (UNIX)
+endif (UNIX AND NOT APPLE)
 
 # ==============================================================================
 # -- Project config ------------------------------------------------------------

@@ -30,10 +30,8 @@
 static constexpr auto DEPTH_MAT_PATH =
 #if PLATFORM_LINUX
   TEXT("Material'/Carla/PostProcessingMaterials/DepthEffectMaterial_GLSL.DepthEffectMaterial_GLSL'");
-#elif PLATFORM_WINDOWS
+#else  // Windows/Mac
   TEXT("Material'/Carla/PostProcessingMaterials/DepthEffectMaterial.DepthEffectMaterial'");
-#else
-#  error No depth material defined for this platform
 #endif
 
 static constexpr auto SEMANTIC_SEGMENTATION_MAT_PATH =

@@ -44,7 +44,7 @@ done
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 pushd "$SCRIPT_DIR" >/dev/null
 
-UNREAL_PROJECT_FOLDER=./Unreal/CarlaUE4
+UNREAL_PROJECT_FOLDER=${PWD}/Unreal/CarlaUE4  # use full path
 UE4_INTERMEDIATE_FOLDERS="Binaries Build Intermediate DerivedDataCache"
 
 function fatal_error {
@@ -65,6 +65,10 @@ fi
 # ==============================================================================
 # -- Make CarlaServer ----------------------------------------------------------
 # ==============================================================================
+
+# Set default compilers for cmake
+export CC=clang-3.9
+export CXX=clang++-3.9
 
 log "Making CarlaServer..."
 make clean && make debug && make release
@@ -91,6 +95,35 @@ popd >/dev/null
 # -- Build and launch Unreal project -------------------------------------------
 # ==============================================================================
 
+if [ "$(uname)" == "Darwin" ]; then  # Mac
+
+set +e
+log "Generate Unreal project files for Mac..."
+# GenerateProjectFiles.sh requires to change directory to location of UE engine Mac batch files
+pushd "${UE4_ROOT}/Engine/Build/BatchFiles/Mac/" >/dev/null
+./GenerateProjectFiles.sh -project="${UNREAL_PROJECT_FOLDER}/CarlaUE4.uproject" -game -engine -makefiles
+popd >/dev/null
+set -e
+
+log "Build CarlaUE4 project for Mac..."
+# Build.sh requires to change directory to location of UE engine root
+pushd "${UE4_ROOT}" >/dev/null
+./Engine/Build/BatchFiles/Mac/Build.sh UE4Editor Mac Development
+
+if $LAUNCH_UE4_EDITOR ; then
+  log "Launching UE4Editor app..."
+  open ./Engine/Binaries/Mac/UE4Editor.app --args "${UNREAL_PROJECT_FOLDER}/CarlaUE4.uproject"
+else
+  echo ""
+  echo "****************"
+  echo "*** Success! ***"
+  echo "****************"
+fi
+
+popd >/dev/null
+
+else  # Linux/Windows
+
 pushd "$UNREAL_PROJECT_FOLDER" >/dev/null
 
 # This command usually fails but normally we can continue anyway.
@@ -113,6 +146,8 @@ else
 fi
 
 popd >/dev/null
+
+fi  # end of OS select
 
 # ==============================================================================
 # -- ...and we are done --------------------------------------------------------
